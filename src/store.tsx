@@ -1,5 +1,5 @@
-import create from 'zustand';
-// import { devtools, persist } from 'zustand/middleware';
+import create, { SetState } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 // Standard interface and functions
 export interface Todo {
@@ -56,44 +56,44 @@ const log = (config: any) => (set: any, get: any, api: any) =>
     api
   );
 
-const useStore = create<Store>(
-  log(
-    (set: any): Store => ({
-      todos: [],
+let store = (set: SetState<Store>): Store => ({
+  todos: [],
+  newTodo: '',
+  load: (todos: Todo[]) =>
+    set((state: Store) => ({
+      ...state,
+      todos,
+    })),
+  removeTodo: (id: number) =>
+    set((state: Store) => ({
+      ...state,
+      todos: removeTodo(state.todos, id),
+    })),
+  updateTodo: (id: number, text: string) =>
+    set((state: Store) => ({
+      ...state,
+      todos: updateTodo(state.todos, id, text),
+    })),
+  toggleTodo: (id: number) =>
+    set((state: Store) => ({
+      ...state,
+      todos: toggleTodo(state.todos, id),
+    })),
+  setNewTodo: (newTodo: string) =>
+    set((state: Store) => ({
+      ...state,
+      newTodo,
+    })),
+  addTodo: () =>
+    set((state: Store) => ({
+      ...state,
+      todos: addTodo(state.todos, state.newTodo),
       newTodo: '',
-      load: (todos: Todo[]) =>
-        set((state: Store) => ({
-          ...state,
-          todos,
-        })),
-      removeTodo: (id: number) =>
-        set((state: Store) => ({
-          ...state,
-          todos: removeTodo(state.todos, id),
-        })),
-      updateTodo: (id: number, text: string) =>
-        set((state: Store) => ({
-          ...state,
-          todos: updateTodo(state.todos, id, text),
-        })),
-      toggleTodo: (id: number) =>
-        set((state: Store) => ({
-          ...state,
-          todos: toggleTodo(state.todos, id),
-        })),
-      setNewTodo: (newTodo: string) =>
-        set((state: Store) => ({
-          ...state,
-          newTodo,
-        })),
-      addTodo: () =>
-        set((state: Store) => ({
-          ...state,
-          todos: addTodo(state.todos, state.newTodo),
-          newTodo: '',
-        })),
-    })
-  )
+    })),
+});
+
+const useStore = create<Store, [['zustand/devtools', never]]>(
+  log(devtools(store))
 );
 
 export default useStore;
